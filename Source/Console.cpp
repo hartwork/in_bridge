@@ -377,6 +377,14 @@ LRESULT CALLBACK WndprocConsole( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 			mmi->ptMinTrackSize.y = CONSOLE_MIN_HEIGHT;
 			return 0;
 		}
+
+	case WM_SYSCOMMAND:
+		if( wp == SC_CLOSE )
+		{
+			return 0;
+		}
+		break;
+		
 	}
 	return CallWindowProc( WndprocConsoleBackup, hwnd, message, wp, lp );
 }

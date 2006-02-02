@@ -1,59 +1,28 @@
-[Editor_5]
-CursorCol=1
-CursorRow=1584
-TopLine=1558
-LeftChar=1
-Open=1
-Top=1
-[Editor_4]
-CursorCol=36
-CursorRow=25
-TopLine=57
-LeftChar=1
-Open=1
-Top=0
-[Editor_2]
-CursorCol=1
-CursorRow=15
-TopLine=1
-LeftChar=1
-Open=1
-Top=0
-[Editor_6]
-CursorCol=31
-CursorRow=17
-TopLine=1
-LeftChar=1
-Open=0
-Top=0
-[Editor_7]
-CursorCol=1
-CursorRow=1
-TopLine=1
-LeftChar=1
-Open=0
-Top=0
-[Editor_0]
-CursorCol=1
-CursorRow=17
-TopLine=349
-LeftChar=1
-Open=1
-Top=0
-[Editor_1]
-CursorCol=1
-CursorRow=17
-TopLine=1
-LeftChar=1
-Open=1
-Top=0
-[Editor_3]
-CursorCol=9
-CursorRow=38
-TopLine=12
-LeftChar=1
-Open=1
-Top=0
-[Editors]
-Focused=5
-Order=5,0,1,2,3,4
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+    <ActiveTarget index="-1" />
+    <File name="Console.cpp" open="0" top="0">
+        <Cursor position="19567" topLine="343" />
+    </File>
+    <File name="Console.h" open="0" top="0">
+        <Cursor position="971" topLine="1" />
+    </File>
+    <File name="DevilConfig.cpp" open="0" top="0">
+        <Cursor position="1846" topLine="42" />
+    </File>
+    <File name="DevilConfig.h" open="0" top="0">
+        <Cursor position="958" topLine="0" />
+    </File>
+    <File name="Winamp\In2.h" open="1" top="0">
+        <Cursor position="1188" topLine="21" />
+    </File>
+    <File name="Winamp\Out.h" open="0" top="0">
+        <Cursor position="614" topLine="7" />
+    </File>
+    <File name="in_bridge.cpp" open="1" top="1">
+        <Cursor position="23305" topLine="500" />
+    </File>
+    <Expand folder="/Sources" />
+    <Expand folder="/Headers/Winamp" />
+    <Expand folder="/Headers" />
+</CodeBlocks_layout_file>
