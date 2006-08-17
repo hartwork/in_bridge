@@ -2,14 +2,14 @@
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
     *                                                                 *
-    *   Inbridge Winamp Plugin 2.2                                    *
+    *   Inbridge Winamp Plugin 2.3                                    *
     *   Copyright © 2005 Sebastian Pipping <webmaster@hartwork.org>   *
     *                                                                 *
     *   --> http://www.hartwork.org                                   *
     *                                                                 *
     *                                                                 *
     *   This source code is released under LGPL.                      *
-    *   See LGPL.txt for details.                        2006-03-29   *
+    *   See LGPL.txt for details.                        2006-08-17   *
     *                                                                 *
     \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -17,6 +17,8 @@
 #include "Global.h"
 #include "Console.h"
 #include "DevilConfig.h"
+
+// #define UNICODE_INPUT_PLUGIN
 #include "Winamp/In2.h"
 #include "Winamp/Out.h"
 #include <stdio.h>
@@ -103,10 +105,10 @@ void  Input_Config( HWND hwndParent );
 void  Input_About( HWND hwndParent );
 void  Input_Init();
 void  Input_Quit();
-void  Input_GetFileInfo( char * file, char * title, int * length_in_ms );
-int   Input_InfoBox( char * file, HWND hwndParent );
-int   Input_IsOurFile( char * fn );
-int   Input_Play( char * fn );
+void  Input_GetFileInfo( const in_char * file, char * title, int * length_in_ms );
+int   Input_InfoBox( const in_char * file, HWND hwndParent );
+int   Input_IsOurFile( const in_char * fn );
+int   Input_Play( const in_char * fn );
 void  Input_Pause();
 void  Input_UnPause();
 int   Input_IsPaused();
@@ -122,10 +124,10 @@ void  Core_SAVSAInit( int maxlatency_in_ms, int srate );
 void  Core_SAVSADeInit();
 void  Core_SAAddPCMData( void * PCMData, int nch, int bps, int timestamp );
 int   Core_SAGetMode();
-void  Core_SAAdd( void * data, int timestamp, int csa );
+int   Core_SAAdd( void * data, int timestamp, int csa );
 void  Core_VSAAddPCMData( void * PCMData, int nch, int bps, int timestamp );
 int   Core_VSAGetMode( int * specNch, int * waveNch );
-void  Core_VSAAdd( void * data, int timestamp );
+int   Core_VSAAdd( void * data, int timestamp );
 void  Core_VSASetInfo( int srate, int nch );
 int   Core_dsp_isactive();
 int   Core_dsp_dosamples( short int * samples, int numsamples, int bps, int nch, int srate );
@@ -316,10 +318,10 @@ In_Module g_InModMaster = {
 	Input_About,               // void ( * About )( HWND hwndParent )
 	Input_Init,                // void ( * Init )()
 	Input_Quit,                // void ( * Quit )()
-	Input_GetFileInfo,         // void ( * GetFileInfo )( char * file, char * title, int * length_in_ms )
-	Input_InfoBox,             // int ( * InfoBox )( char * file, HWND hwndParent )
-	Input_IsOurFile,           // int ( * IsOurFile )( char * fn )
-	Input_Play,                // int ( * Play )( char * fn )
+	Input_GetFileInfo,         // void ( * GetFileInfo )( const in_char * file, char * title, int * length_in_ms )
+	Input_InfoBox,             // int ( * InfoBox )( const in_char * file, HWND hwndParent )
+	Input_IsOurFile,           // int ( * IsOurFile )( const in_char * fn )
+	Input_Play,                // int ( * Play )( const in_char * fn )
 	Input_Pause,               // void ( * Pause )()
 	Input_UnPause,             // void ( * UnPause )()
 	Input_IsPaused,            // int ( * IsPaused )()
@@ -495,11 +497,22 @@ void Input_Quit()
 ////////////////////////////////////////////////////////////////////////////////
 //  Input_GetFileInfo
 ////////////////////////////////////////////////////////////////////////////////
-void Input_GetFileInfo( char * file, char * title, int * length_in_ms )
+void Input_GetFileInfo( const in_char * file, char * title, int * length_in_ms )
 {
 	if( bLogInput_GetFileInfo )
 	{
-		Console::Append( "Input::GetFileInfo( char * file, char * title, int * length_in_ms )" );
+#ifdef UNICODE_INPUT_PLUGIN
+		Console::Append( "Input::GetFileInfo( const wchar_t * file, char * title, int * length_in_ms )" );
+		if( file )
+		{
+			Console::Append( "   file = <TODO>" );
+		}
+		else
+		{
+			Console::Append( "   file = NULL" );
+		}
+#else
+		Console::Append( "Input::GetFileInfo( const char * file, char * title, int * length_in_ms )" );
 		if( file )
 		{
 			char szBuffer[ 500 ];
@@ -510,6 +523,7 @@ void Input_GetFileInfo( char * file, char * title, int * length_in_ms )
 		{
 			Console::Append( "   file = NULL" );
 		}
+#endif
 	}
 	
 	g_pInModSlave->GetFileInfo( file, title, length_in_ms );
@@ -548,17 +562,24 @@ void Input_GetFileInfo( char * file, char * title, int * length_in_ms )
 ////////////////////////////////////////////////////////////////////////////////
 //  Input_InfoBox
 ////////////////////////////////////////////////////////////////////////////////
-int Input_InfoBox( char * file, HWND hwndParent )
+int Input_InfoBox( const in_char * file, HWND hwndParent )
 {
 	if( bLogInput_InfoBox )
 	{
-		Console::Append( "Input::InfoBox( char * file, HWND hwndParent )" );
 		char szBuffer[ 500 ];
+#ifdef UNICODE_INPUT_PLUGIN
+		Console::Append( "Input::InfoBox( const wchar_t * file, HWND hwndParent )" );
+		Console::Append( "   file = <TODO>" );
+#else
+		Console::Append( "Input::InfoBox( const char * file, HWND hwndParent )" );
 		sprintf( szBuffer, "   file = \"%s\"", ( file ? file : "NULL" ) );
+		Console::Append( szBuffer );
+#endif
+		sprintf( szBuffer, "   hwndParent = %i", ( int )hwndParent );
 		Console::Append( szBuffer );
 	}
 
-	int res = g_pInModSlave->InfoBox( file, hwndParent );
+	const int res = g_pInModSlave->InfoBox( file, hwndParent );
 	
 	if( bLogInput_InfoBox )
 	{
@@ -576,17 +597,22 @@ int Input_InfoBox( char * file, HWND hwndParent )
 ////////////////////////////////////////////////////////////////////////////////
 //  Input_IsOurFile
 ////////////////////////////////////////////////////////////////////////////////
-int Input_IsOurFile( char * fn )
+int Input_IsOurFile( const in_char * fn )
 {
 	if( bLogInput_IsOurFile )
 	{
-		Console::Append( "Input::IsOurFile( char * fn )" );
+#ifdef UNICODE_INPUT_PLUGIN
+		Console::Append( "Input::IsOurFile( const wchar_t * fn )" );
+		Console::Append( "   fn = <TODO>" );
+#else
+		Console::Append( "Input::IsOurFile( const char * fn )" );
 		char szBuffer[ 500 ];
 		sprintf( szBuffer, "   fn = \"%s\"", ( fn ? fn : "NULL" ) );
 		Console::Append( szBuffer );
+#endif
 	}
 
-	int res = g_pInModSlave->IsOurFile( fn );
+	const int res = g_pInModSlave->IsOurFile( fn );
 	
 	if( bLogInput_IsOurFile )
 	{
@@ -604,17 +630,22 @@ int Input_IsOurFile( char * fn )
 ////////////////////////////////////////////////////////////////////////////////
 //  Input_Play
 ////////////////////////////////////////////////////////////////////////////////
-int Input_Play( char * fn )
+int Input_Play( const in_char * fn )
 {
 	if( bLogInput_Play )
 	{
-		Console::Append( "Input::Play( char * fn )" );
+#ifdef UNICODE_INPUT_PLUGIN
+		Console::Append( "Input::Play( const wchar_t * fn )" );
+		Console::Append( "   fn = <TODO>" );
+#else
+		Console::Append( "Input::Play( const char * fn )" );
 		char szBuffer[ 500 ];
 		sprintf( szBuffer, "   fn = \"%s\"", ( fn ? fn : "NULL" ) );
 		Console::Append( szBuffer );
+#endif
 	}
 
-	int res = g_pInModSlave->Play( fn );
+	const int res = g_pInModSlave->Play( fn );
 	
 	if( bLogInput_Play )
 	{
@@ -671,7 +702,7 @@ int Input_IsPaused()
 		Console::Append( "Input::IsPaused()" );
 	}
 
-	int res = g_pInModSlave->IsPaused();
+	const int res = g_pInModSlave->IsPaused();
 	
 	if( bLogInput_IsPaused )
 	{
@@ -712,7 +743,7 @@ int Input_GetLength()
 		Console::Append( "Input::GetLength()" );
 	}
 
-	int res = g_pInModSlave->GetLength();
+	const int res = g_pInModSlave->GetLength();
 	
 	if( bLogInput_GetLength )
 	{
@@ -737,7 +768,7 @@ int Input_GetOutputTime()
 		Console::Append( "Input::GetOutputTime()" );
 	}
 
-	int res = g_pInModSlave->GetOutputTime();
+	const int res = g_pInModSlave->GetOutputTime();
 
 	if( bLogInput_GetOutputTime )
 	{
@@ -820,7 +851,7 @@ void Input_EQSet( int on, char data[ 10 ], int preamp )
 		char szBuffer[ 500 ];
 		sprintf( szBuffer, "   on = %i", on );
 		Console::Append( szBuffer );
-		sprintf( szBuffer, "   data: [%i, %i, %i, %i, %i, %i, %i, %i, %i, %i]",
+		sprintf( szBuffer, "   data = [%i, %i, %i, %i, %i, %i, %i, %i, %i, %i]",
 			data[ 0 ], data[ 1 ], data[ 2 ], data[ 3 ], data[ 4 ],
 			data[ 5 ], data[ 6 ], data[ 7 ], data[ 8 ], data[ 9 ] );
 		Console::Append( szBuffer );
@@ -905,7 +936,7 @@ int Core_SAGetMode()
 		Console::Append( "Core::SAGetMode()" );
 	}
 
-	int res = g_InModMaster.SAGetMode();
+	const int res = g_InModMaster.SAGetMode();
 
 	if( bLogCore_SAGetMode )
 	{
@@ -923,7 +954,7 @@ int Core_SAGetMode()
 ////////////////////////////////////////////////////////////////////////////////
 //  Core_SAAdd
 ////////////////////////////////////////////////////////////////////////////////
-void Core_SAAdd( void * data, int timestamp, int csa )
+int Core_SAAdd( void * data, int timestamp, int csa )
 {
 	if( bLogCore_SAAdd )
 	{
@@ -934,10 +965,19 @@ void Core_SAAdd( void * data, int timestamp, int csa )
 		Console::Append( szBuffer );
 		sprintf( szBuffer, "   csa = %i", csa );
 		Console::Append( szBuffer );
+	}
+
+	const int res = g_InModMaster.SAAdd( data, timestamp, csa );
+	
+	if( bLogCore_SAAdd )
+	{
+		char szBuffer[ 500 ];
+		sprintf( szBuffer, "result = %i", res );
+		Console::Append( szBuffer );
 		Console::Append( " " );
 	}
 
-	g_InModMaster.SAAdd( data, timestamp, csa );
+	return res;
 }
 
 
@@ -976,7 +1016,7 @@ int Core_VSAGetMode( int * specNch, int * waveNch )
 		Console::Append( "Core::VSAGetMode( int * specNch, int * waveNch )" );
 	}
 
-	int res = g_InModMaster.VSAGetMode( specNch, waveNch );
+	const int res = g_InModMaster.VSAGetMode( specNch, waveNch );
 
 	if( bLogCore_VSAGetMode )
 	{
@@ -998,7 +1038,7 @@ int Core_VSAGetMode( int * specNch, int * waveNch )
 ////////////////////////////////////////////////////////////////////////////////
 //  Core_VSAAdd
 ////////////////////////////////////////////////////////////////////////////////
-void Core_VSAAdd( void * data, int timestamp )
+int Core_VSAAdd( void * data, int timestamp )
 {
 	if( bLogCore_VSAAdd )
 	{
@@ -1007,10 +1047,19 @@ void Core_VSAAdd( void * data, int timestamp )
 		char szBuffer[ 500 ];
 		sprintf( szBuffer, "   timestamp = %i", timestamp );
 		Console::Append( szBuffer );
+	}
+
+	const int res = g_InModMaster.VSAAdd( data, timestamp );
+	
+	if( bLogCore_VSAAdd )
+	{
+		char szBuffer[ 500 ];
+		sprintf( szBuffer, "result = %i", res );
+		Console::Append( szBuffer );
 		Console::Append( " " );
 	}
 
-	g_InModMaster.VSAAdd( data, timestamp );
+	return res;
 }
 
 
@@ -1046,7 +1095,7 @@ int Core_dsp_isactive()
 		Console::Append( "Core::dsp_isactive()" );
 	}
 
-	int res = g_InModMaster.dsp_isactive();
+	const int res = g_InModMaster.dsp_isactive();
 	
 	if( bLogCore_dsp_isactive )
 	{
@@ -1081,7 +1130,7 @@ int Core_dsp_dosamples( short int * samples, int numsamples, int bps, int nch, i
 		Console::Append( szBuffer );
 	}
 
-	int res = g_InModMaster.dsp_dosamples( samples, numsamples, bps, nch, srate );
+	const int res = g_InModMaster.dsp_dosamples( samples, numsamples, bps, nch, srate );
 	
 	if( bLogCore_dsp_dosamples )
 	{
@@ -1212,7 +1261,7 @@ int Output_Open( int sr, int nch, int bps, int bufferlenms, int prebufferms )
 		Console::Append( szBuffer );
 	}
 
-	int res = g_InModMaster.outMod->Open( sr, nch, bps, bufferlenms, prebufferms );
+	const int res = g_InModMaster.outMod->Open( sr, nch, bps, bufferlenms, prebufferms );
 	
 	if( bLogOutput_Open )
 	{
@@ -1257,7 +1306,7 @@ int Output_Write( char * data, int size )
 		Console::Append( szBuffer );
 	}
 
-	int res = g_InModMaster.outMod->Write( data, size );
+	const int res = g_InModMaster.outMod->Write( data, size );
 	
 	if( bLogOutput_Write )
 	{
@@ -1282,7 +1331,7 @@ int Output_CanWrite()
 		Console::Append( "Output::CanWrite()" );
 	}
 
-	int res = g_InModMaster.outMod->CanWrite();
+	const int res = g_InModMaster.outMod->CanWrite();
 	
 	if( bLogOutput_CanWrite )
 	{
@@ -1307,7 +1356,7 @@ int Output_IsPlaying()
 		Console::Append( "Output::IsPlaying()" );
 	}
 
-	int res = g_InModMaster.outMod->IsPlaying();
+	const int res = g_InModMaster.outMod->IsPlaying();
 	
 	if( bLogOutput_IsPlaying )
 	{
@@ -1335,7 +1384,7 @@ int Output_Pause( int new_state )
 		Console::Append( szBuffer );
 	}
 
-	int res = g_InModMaster.outMod->Pause( new_state );
+	const int res = g_InModMaster.outMod->Pause( new_state );
 	
 	if( bLogOutput_Pause )
 	{
@@ -1417,7 +1466,7 @@ int Output_GetOutputTime()
 		Console::Append( "Output::GetOutputTime()" );
 	}
 
-	int res = g_InModMaster.outMod->GetOutputTime();
+	const int res = g_InModMaster.outMod->GetOutputTime();
 	
 	if( bLogOutput_GetOutputTime )
 	{
@@ -1442,7 +1491,7 @@ int Output_GetWrittenTime()
 		Console::Append( "Output::GetWrittenTime()" );
 	}
 
-	int res = g_InModMaster.outMod->GetWrittenTime();
+	const int res = g_InModMaster.outMod->GetWrittenTime();
 
 	if( bLogOutput_GetWrittenTime )
 	{
@@ -1611,7 +1660,7 @@ extern "C" __declspec( dllexport ) In_Module * winampGetInModule2()
 			"\tthe expected filename of the slave.",
 			szBasename
 		);
-		MessageBox( NULL, szBuffer, "Slave plugin error", MB_ICONINFORMATION );
+		MessageBox( NULL, szBuffer, "Slave plugin error", MB_ICONERROR );
 		return NULL;
 	}
 
@@ -1622,6 +1671,7 @@ extern "C" __declspec( dllexport ) In_Module * winampGetInModule2()
 	if( !winampGetOutModule2 )
 	{
 		FreeLibrary( g_hSlaveInstance );
+		MessageBox( NULL, "Export 'winampGetInModule2' not found.", "Slave plugin error", MB_ICONERROR );
 		return NULL;
 	}
 
@@ -1631,6 +1681,7 @@ extern "C" __declspec( dllexport ) In_Module * winampGetInModule2()
 	if( !g_pInModSlave )
 	{
 		FreeLibrary( g_hSlaveInstance );
+		MessageBox( NULL, "Input module could not be retrieved.", "Slave plugin error", MB_ICONERROR );
 		return NULL;
 	}
 
@@ -1639,6 +1690,7 @@ extern "C" __declspec( dllexport ) In_Module * winampGetInModule2()
 	if( g_pInModSlave->version != IN_VER )
 	{
 		FreeLibrary( g_hSlaveInstance );
+		MessageBox( NULL, "Input plugin version does not match.", "Slave plugin error", MB_ICONERROR );
 		return NULL;
 	}
 	
@@ -1656,7 +1708,7 @@ extern "C" __declspec( dllexport ) In_Module * winampGetInModule2()
 
 	// Initialize console
 	Console::Create( szBasename );
-	Console::Append( "Inbridge Winamp Plugin 2.2" );
+	Console::Append( "Inbridge Winamp Plugin 2.3" );
 	Console::Append( "http://www.hartwork.org" );
 	Console::Append( " " );
 	Console::Append( "Right-click for settings" );

@@ -1,22 +1,22 @@
-#ifndef WINAMP_IN_H
-#define WINAMP_IN_H
+#ifndef NULLSOFT_WINAMP_IN2H
+#define NULLSOFT_WINAMP_IN2H
 
 
-#include <windows.h>
-#include "out.h"
+
+#include "Out.h"
 
 // note: exported symbol is now winampGetInModule2.
 
+#define IN_UNICODE 0x0F000000
+
+#ifdef UNICODE_INPUT_PLUGIN
+#define in_char wchar_t
+#define IN_VER (IN_UNICODE | 0x100)
+#else
+#define in_char char
 #define IN_VER 0x100
+#endif
 
-
-// Changed
-//   void (*VSASetInfo)(int nch, int srate);
-// to
-//   void (*VSASetInfo)(int srate, int nch);
-// since the old one is wrong!
-//
-// Otherwise in_mp3 is the problem!?...
 
 
 typedef struct 
@@ -39,12 +39,13 @@ typedef struct
 	void (*Init)();				// called at program init
 	void (*Quit)();				// called at program quit
 
-	void (*GetFileInfo)(char *file, char *title, int *length_in_ms); // if file == NULL, current playing is used
-	int (*InfoBox)(char *file, HWND hwndParent);
+#define GETFILEINFO_TITLE_LENGTH 2048 
+	void (*GetFileInfo)(const in_char *file, char *title, int *length_in_ms); // if file == NULL, current playing is used
+	int (*InfoBox)(const in_char *file, HWND hwndParent);
 	
-	int (*IsOurFile)(char *fn);	// called before extension checks, to allow detection of mms://, etc
+	int (*IsOurFile)(const in_char *fn);	// called before extension checks, to allow detection of mms://, etc
 	// playback stuff
-	int (*Play)(char *fn);		// return zero on success, -1 on file-not-found, some other value on other (stopping winamp) error
+	int (*Play)(const in_char *fn);		// return zero on success, -1 on file-not-found, some other value on other (stopping winamp) error
 	void (*Pause)();			// pause stream
 	void (*UnPause)();			// unpause stream
 	int (*IsPaused)();			// ispaused? return 1 if paused, 0 if not
@@ -75,7 +76,7 @@ typedef struct
 	// advanced vis supplying mode, only use if you're cool. Use SAAddPCMData for most stuff.
 	int (*SAGetMode)();		// gets csa (the current type (4=ws,2=osc,1=spec))
 							// use when calling SAAdd()
-	void (*SAAdd)(void *data, int timestamp, int csa); // sets the spec data, filled in by winamp
+	int (*SAAdd)(void *data, int timestamp, int csa); // sets the spec data, filled in by winamp
 
 
 	// vis stuff (plug-in)
@@ -86,15 +87,15 @@ typedef struct
 
 	// advanced vis supplying mode, only use if you're cool. Use VSAAddPCMData for most stuff.
 	int (*VSAGetMode)(int *specNch, int *waveNch); // use to figure out what to give to VSAAdd
-	void (*VSAAdd)(void *data, int timestamp); // filled in by winamp, called by plug-in
+	int (*VSAAdd)(void *data, int timestamp); // filled in by winamp, called by plug-in
 
 
 	// call this in Play() to tell the vis plug-ins the current output params. 
-	void (*VSASetInfo)(int srate, int nch);
+	void (*VSASetInfo)(int srate, int nch); // <-- Correct (benski, dec 2005).. old declaration had the params backwards
 
 
 	// dsp plug-in processing: 
-	// (filled in by winamp, called by input plug)
+	// (filled in by winamp, calld by input plug)
 
 	// returns 1 if active (which means that the number of samples returned by dsp_dosamples
 	// could be greater than went in.. Use it to estimate if you'll have enough room in the
@@ -116,4 +117,5 @@ typedef struct
 } In_Module;
 
 
-#endif // WINAMP_IN_H
+
+#endif // NULLSOFT_WINAMP_IN2H
