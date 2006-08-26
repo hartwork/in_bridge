@@ -2,14 +2,14 @@
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
     *                                                                 *
-    *   Inbridge Winamp Plugin 2.3                                    *
+    *   Inbridge Winamp Plugin 2.4                                    *
     *   Copyright © 2005 Sebastian Pipping <webmaster@hartwork.org>   *
     *                                                                 *
     *   --> http://www.hartwork.org                                   *
     *                                                                 *
     *                                                                 *
     *   This source code is released under LGPL.                      *
-    *   See LGPL.txt for details.                        2006-08-17   *
+    *   See LGPL.txt for details.                        2006-08-26   *
     *                                                                 *
     \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -22,6 +22,14 @@
 #include "Winamp/In2.h"
 #include "Winamp/Out.h"
 #include <stdio.h>
+
+
+
+#ifdef UNICODE_INPUT_PLUGIN
+# define TITLE_SUFFIX " (Unicode)"
+#else
+# define TITLE_SUFFIX " (Ansi)"
+#endif
 
 
 
@@ -105,7 +113,7 @@ void  Input_Config( HWND hwndParent );
 void  Input_About( HWND hwndParent );
 void  Input_Init();
 void  Input_Quit();
-void  Input_GetFileInfo( const in_char * file, char * title, int * length_in_ms );
+void  Input_GetFileInfo( const in_char * file, in_char * title, int * length_in_ms );
 int   Input_InfoBox( const in_char * file, HWND hwndParent );
 int   Input_IsOurFile( const in_char * fn );
 int   Input_Play( const in_char * fn );
@@ -213,7 +221,7 @@ void ReadConfig()
 	g_pCONFIG->Read( "bLogOutput_Close",           &res, 1 ); bLogOutput_Close           = ( bool )res;
 	g_pCONFIG->Read( "bLogOutput_Write",           &res, 0 ); bLogOutput_Write           = ( bool )res;
 	g_pCONFIG->Read( "bLogOutput_CanWrite",        &res, 0 ); bLogOutput_CanWrite        = ( bool )res;
-	g_pCONFIG->Read( "bLogOutput_IsPlaying",       &res, 1 ); bLogOutput_IsPlaying       = ( bool )res;
+	g_pCONFIG->Read( "bLogOutput_IsPlaying",       &res, 0 ); bLogOutput_IsPlaying       = ( bool )res;
 	g_pCONFIG->Read( "bLogOutput_Pause",           &res, 1 ); bLogOutput_Pause           = ( bool )res;
 	g_pCONFIG->Read( "bLogOutput_SetVolume",       &res, 1 ); bLogOutput_SetVolume       = ( bool )res;
 	g_pCONFIG->Read( "bLogOutput_SetPan",          &res, 1 ); bLogOutput_SetPan          = ( bool )res;
@@ -497,7 +505,7 @@ void Input_Quit()
 ////////////////////////////////////////////////////////////////////////////////
 //  Input_GetFileInfo
 ////////////////////////////////////////////////////////////////////////////////
-void Input_GetFileInfo( const in_char * file, char * title, int * length_in_ms )
+void Input_GetFileInfo( const in_char * file, in_char * title, int * length_in_ms )
 {
 	if( bLogInput_GetFileInfo )
 	{
@@ -536,8 +544,12 @@ void Input_GetFileInfo( const in_char * file, char * title, int * length_in_ms )
 		char szBuffer[ 500 ];
 		if( title )
 		{
+#ifdef UNICODE_INPUT_PLUGIN
+			Console::Append( "   title = <TODO>" );
+#else
 			sprintf( szBuffer, "   title = \"%s\"", title );
 			Console::Append( szBuffer );
+#endif
 		}
 		else
 		{
@@ -1708,7 +1720,7 @@ extern "C" __declspec( dllexport ) In_Module * winampGetInModule2()
 
 	// Initialize console
 	Console::Create( szBasename );
-	Console::Append( "Inbridge Winamp Plugin 2.3" );
+	Console::Append( "Inbridge Winamp Plugin 2.4" TITLE_SUFFIX );
 	Console::Append( "http://www.hartwork.org" );
 	Console::Append( " " );
 	Console::Append( "Right-click for settings" );

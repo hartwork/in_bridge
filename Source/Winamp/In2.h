@@ -40,7 +40,7 @@ typedef struct
 	void (*Quit)();				// called at program quit
 
 #define GETFILEINFO_TITLE_LENGTH 2048 
-	void (*GetFileInfo)(const in_char *file, char *title, int *length_in_ms); // if file == NULL, current playing is used
+	void (*GetFileInfo)(const in_char *file, in_char *title, int *length_in_ms); // if file == NULL, current playing is used
 	int (*InfoBox)(const in_char *file, HWND hwndParent);
 	
 	int (*IsOurFile)(const in_char *fn);	// called before extension checks, to allow detection of mms://, etc
